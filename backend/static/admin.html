@@ -1,0 +1,30 @@
+<!-- static/admin.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+</head>
+<body>
+<h1>Welcome to the Admin Panel</h1>
+
+<!-- Display existing brand suggestions -->
+<h2>Brand Suggestions</h2>
+<ul>
+    {{ range .BrandSuggestions }}
+    <li>
+        {{ .BrandName }}
+        <form action="/admin/delete-suggested-brand" method="post" style="display: inline;">
+            <input type="hidden" name="brandName" value="{{ .BrandName }}">
+            <button type="submit">Delete</button>
+        </form>
+        <form action="/admin/add-suggested-brand" method="post" style="display: inline;">
+            <input type="hidden" name="brandName" value="{{ .BrandName }}">
+            <button type="submit">Add</button>
+        </form>
+    </li>
+    {{ end }}
+</ul>
+</body>
+</html>
