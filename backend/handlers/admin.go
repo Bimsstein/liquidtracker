@@ -3,7 +3,7 @@
 package handlers
 
 import (
-	"LiquidTracker/db"
+	"LiquidTracker/db/collections"
 	"LiquidTracker/models"
 	"html/template"
 	"net/http"
@@ -24,7 +24,7 @@ func AdminHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get existing brand suggestions from database
-	suggestions, err := db.GetBrandSuggestions()
+	suggestions, err := collections.GetBrandSuggestions()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -58,7 +58,7 @@ func DeleteSuggestedBrandHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		brandName := r.FormValue("brandName")
 		if brandName != "" {
-			err := db.DeleteBrandSuggestion(brandName)
+			err := collections.DeleteBrandSuggestions(brandName)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -83,13 +83,13 @@ func AddSuggestedBrandHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		brandName := r.FormValue("brandName")
 		if brandName != "" {
-			err := db.AddBrand(brandName)
+			err := collections.AddBrand(brandName)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 
-			err = db.DeleteBrandSuggestion(brandName)
+			err = collections.DeleteBrandSuggestions(brandName)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return

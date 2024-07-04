@@ -13,15 +13,19 @@ import (
 
 func main() {
 	// Initialize database
-	err := db.InitDB()
+	err := db.ConnectDB()
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
+	}
+
+	err = db.CreateCollections()
+	if err != nil {
+		log.Fatalf("Failed to create collections: %v", err)
 	}
 
 	// HTTP handlers
 	http.HandleFunc("/", handlers.IndexHandler)
 	http.HandleFunc("/submit", handlers.SubmitHandler)
-	http.HandleFunc("/add-brand", handlers.AddBrandHandler)
 	http.HandleFunc("/suggest-brand", handlers.SuggestBrandHandler)
 	http.HandleFunc("/admin", handlers.AdminHandler)
 	http.HandleFunc("/admin/delete-suggested-brand", handlers.DeleteSuggestedBrandHandler)

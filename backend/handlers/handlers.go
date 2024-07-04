@@ -1,60 +1,32 @@
 package handlers
 
 import (
-	"LiquidTracker/db"
+	"LiquidTracker/db/collections"
 	"html/template"
+	"log"
 	"net/http"
 )
 
 var tmpl = template.Must(template.ParseFiles("static/index.html"))
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.GetDB().Query("SELECT id, name FROM brands")
+	brands, err := collections.GetBrands()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
-	var brands []Brand
-	for rows.Next() {
-		var b Brand
-		if err := rows.Scan(&b.ID, &b.Name); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		brands = append(brands, b)
-	}
-
-	if err := tmpl.Execute(w, brands); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	err = tmpl.Execute(w, brands)
+	if err != nil {
+		// At this point, a partial response may have already been written,
+		// so it's too late to send an HTTP 500 error.
+		log.Printf("Error executing template: %v", err)
 	}
 }
 
 type Brand struct {
 	ID   int
 	Name string
-}
-
-func AddBrandHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-		return
-	}
-
-	name := r.FormValue("name")
-	if name == "" {
-		http.Error(w, "Brand name is required", http.StatusBadRequest)
-		return
-	}
-
-	_, err := db.GetDB().Exec("INSERT INTO brands (name) VALUES ($1)", name)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func SubmitHandler(w http.ResponseWriter, r *http.Request) {
@@ -72,9 +44,8 @@ func SubmitHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := db.GetDB().Exec("INSERT INTO ratings (brand_id, variety, rating) VALUES ($1, $2, $3)", brandID, variety, rating)
+	err := collections.AddRating(brandID, variety, rating)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -93,9 +64,8 @@ func SuggestBrandHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := db.GetDB().Exec("INSERT INTO brand_suggestions (brand_name) VALUES ($1)", name)
+	err := collections.AddBrandSuggestions(name)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
